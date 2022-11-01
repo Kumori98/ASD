@@ -1,0 +1,8 @@
+La funzione majority è stata costruita a partire da un algoritmo Divide et Impera con 2 vie (a)
+e con fattore di divisone 2(b), l'equazione alle ricorrenze è quindi:
+T(n) = D(n) + C(n)+ aT(n/b) che con costo di divisione unitario e ricombinazione lineare(Funzione occorrenze) 
+viene: T(n) = n + 2T(n/2), procedendo per unfolding si ottiene ∑ n*(2^i)/(2^i) con i che va da 0 a log2(n),
+cioè n * ∑1 da 0 a log2(n) che ci da come risultato n(1+log2(n)).
+La complessità è linearitmica: n*log(n); 
+
+
