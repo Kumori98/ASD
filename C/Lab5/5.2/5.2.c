@@ -5,7 +5,7 @@
 
 
 typedef struct tile{
-    int rot, blocked;
+    int blocked;
     int val_V, val_O;    
     char tipo_V, tipo_O;
 }tile_t;
@@ -59,7 +59,6 @@ void carica_tiles(FILE *fp, options_t *options){
     
     for(i=0; i<options->n; i++){
         fscanf(fp, " %c %d %c %d", &options->tiles[i].tipo_O, &options->tiles[i].val_O, &options->tiles[i].tipo_V, &options->tiles[i].val_V);
-        options->tiles[i].rot=0;
         options->tiles[i].blocked=0;
     }
 }
@@ -79,7 +78,6 @@ void carica_board(FILE *fp, board_t *board, options_t *options){
             else{
                 board->tiles[board->C*i+j] = t;
                 options->tiles[t].blocked=1;
-                options->tiles[t].rot=r;
                 if(r==1){ //scambio i valori
                     ruota(&(options->tiles[t].val_O), &(options->tiles[t].val_V), &(options->tiles[t].tipo_O), &(options->tiles[t].tipo_V));
                 }
@@ -123,7 +121,7 @@ void mostra_best(board_t *board, options_t *options){
     free(mark);
 }
 
-int calcola_best(int pos, options_t *val, int *sol, int *b_sol, int *mark, int n, int nr, int nc, int max){
+int calcola_best(int pos, options_t *val, int *sol, int *b_sol, int *mark, int n, int nr, int nc, int max){ //disposizioni semplici
     int  i, c_val, j;
     if(pos>=(nr*nc)){
         c_val = calcola_valore(sol, val, nr, nc);
@@ -142,9 +140,7 @@ int calcola_best(int pos, options_t *val, int *sol, int *b_sol, int *mark, int n
         else if (mark[i]==0){
             mark[i] = 1; 
             sol[pos] = i;
-            val->tiles[i].rot=0;
             max = calcola_best(pos+1, val, sol, b_sol, mark, n, nr, nc, max); //prima ricorsione (non ruotato)
-            val->tiles[i].rot=1;
             ruota(&(val->tiles[i].val_O), &(val->tiles[i].val_V), &(val->tiles[i].tipo_O), &(val->tiles[i].tipo_V)); //ruoto i tubi
             max = calcola_best(pos+1, val, sol, b_sol, mark, n, nr, nc, max); //seconda ricorsione (ruotato)
             ruota(&(val->tiles[i].val_O), &(val->tiles[i].val_V), &(val->tiles[i].tipo_O), &(val->tiles[i].tipo_V));   //li riporto nella posizone originale
