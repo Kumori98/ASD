@@ -155,35 +155,33 @@ int calcola_best(int pos, options_t *val, int *sol, int *b_sol, int *mark, int n
 }
 
 int calcola_valore(int *sol, options_t *val, int nr, int nc){
-    int i, j, tot=0, sum_o=0, sum_v=0, flag=1;
+    int i, j, tot=0, sum_o=0, sum_v=0;
     char tipo_o, tipo_v;
 
 
     for(i=0; i<nr; i++){    //calcolo le somme orizzontali
-            sum_o = val->tiles[nc*i].val_O;
-            tipo_o = val->tiles[nc*i].tipo_O;
-        for(j=1; j<nc && flag==1; j++){
-                if(tipo_o == val->tiles[nc*i+j].tipo_O)
-                    sum_o += val->tiles[nc*i+j].val_O;
+            sum_o = val->tiles[sol[nc*i]].val_O;
+            tipo_o = val->tiles[sol[nc*i]].tipo_O;
+        for(j=1; j<nc; j++){
+                if(tipo_o == val->tiles[sol[nc*i+j]].tipo_O)
+                    sum_o += val->tiles[sol[nc*i+j]].val_O;
                 else{
-                flag=0;
                 sum_o=0;
+                break;
                 }
         }
         tot += sum_o;               
     }
 
-    flag=1;
-
     for(j=0; j<nc; j++){ //calcolo le somme verticali
-            sum_v = val->tiles[j].val_V;
-            tipo_v = val->tiles[j].tipo_V;
-        for(i=1; i<nr && flag==1; i++){
-                if(tipo_v == val->tiles[nc*i+j].tipo_V)
-                    sum_v += val->tiles[nc*i+j].val_V;
+            sum_v = val->tiles[sol[j]].val_V;
+            tipo_v = val->tiles[sol[j]].tipo_V;
+        for(i=1; i<nr; i++){
+                if(tipo_v == val->tiles[sol[nc*i+j]].tipo_V)
+                    sum_v += val->tiles[sol[nc*i+j]].val_V;
                 else{
-                    flag=0;
                     sum_v=0;
+                    break;
                 }
         }
         tot += sum_v; 
