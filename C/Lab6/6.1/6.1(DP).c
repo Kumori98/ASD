@@ -147,7 +147,7 @@ void displaySol(int *opt,attivita_t *attivita,int n){
         }
         else {
             j=i;
-            while(opt[j] != opt[i-1] + attivita[j].durata){
+            while(opt[j] != opt[i-1] + attivita[j].durata){ 
                 i--;
                 sol[i]=0;
             }
