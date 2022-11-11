@@ -1,15 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define NOMEFILE "att1.txt"
+#define NOMEFILE "att.txt"
 
 typedef struct attivita{
     int inizio, fine, durata;
 } attivita_t;
 
 attivita_t *carica_attivita(FILE *fp,attivita_t *attivita, int n_attivita);
-int migliore_attivita(int pos, attivita_t *attivita, int *sol, int n_attivita, int *b_sol, int c_val, int max);
-void attSel(int N, attivita_t *v); 
-int isvalid(int *sol, int pos, attivita_t * v);
+int isvalid(attivita_t a1, attivita_t a2);
+void solve(attivita_t *attivita, int n);
+int solveR(attivita_t *attivita, int *opt, int n, int k);
+int max(int n1, int n2);
+int maxComp(attivita_t *attivita, int k);
+void ordina(attivita_t *attivita, int n);
+void swap(int i1, int i2, attivita_t *attivita);
 
 
 
@@ -27,9 +31,11 @@ int main(){
 
     fscanf(fp, "%d", &n_attivita);
 
+    attivita = (attivita_t *) malloc((n_attivita+1)*sizeof(attivita_t));
     attivita = carica_attivita(fp, attivita, n_attivita);
 
-    attSel(n_attivita, attivita);
+    ordina(attivita, n_attivita+1);
+    solve(attivita, n_attivita+1);
 
     return 0;
 
@@ -38,7 +44,8 @@ int main(){
 attivita_t *carica_attivita(FILE *fp,attivita_t *attivita, int n_attivita){
     int i;
 
-    for(i=0; i<n_attivita; i++){
+    attivita[0].durata=0;
+    for(i=1; i<n_attivita+1; i++){
         fscanf(fp,"%d %d", &attivita[i].inizio, &attivita[i].fine);
         attivita[i].durata = attivita[i].fine - attivita[i].inizio;
     }
@@ -46,60 +53,76 @@ attivita_t *carica_attivita(FILE *fp,attivita_t *attivita, int n_attivita){
     return attivita;
 }
 
-void attSel(int N, attivita_t *v){
-    int durata_max=0, *sol, *b_sol, i;
-
-    sol = (int *) malloc(N*sizeof(int));
-    b_sol = (int *) malloc(N*sizeof(int));
-    durata_max = migliore_attivita(0, v, sol, N, b_sol, durata_max, durata_max);
-
-    printf("L'insieme migliore di attivita' ha durata %s ed è formata da: \n", &durata_max);
-
-    for(i=0; i<N; i++){
-        if(b_sol[i]==1)
-            printf("(%d,%d)", v[i].inizio, v[i].fine);
-    }
-
-    free(b_sol);;
-    free(sol);
-}
-
-int migliore_attivita(int pos, attivita_t *attivita, int *sol, int n_attivita, int *b_sol, int c_val, int max){
-    int j;
-    if(pos >= n_attivita){
-        if(c_val > max){
-            max = c_val;
-            for(j=0; j<n_attivita; j++)
-                b_sol[j] = sol[j];
-        }
-        return max;
-    }
-
-    
-
-    if(!isvalid(sol, pos, attivita)){
-        sol[pos]=0;
-        max = migliore_attivita(pos+1, attivita, sol, n_attivita, b_sol, c_val, max);
-        return max;
-    }
-
-    sol[pos]=1;
-    c_val = c_val + attivita[pos].durata;
-    max = migliore_attivita(pos+1, attivita, sol, n_attivita, b_sol, c_val, max);
-
-    sol[pos]=0;
-    c_val = c_val - attivita[pos].durata;
-    max = migliore_attivita(pos+1, attivita, sol, n_attivita, b_sol, c_val, max);
-
-    return max;
-}
-
-int isvalid(int *sol, int pos, attivita_t * v){
-    int i;
-
-    for(i=0; i<pos; i++){
-        if((v[i].inizio < v[pos].fine) && (v[pos].inizio < v[i].fine) && sol[i]==1)
+int isvalid(attivita_t a1, attivita_t a2){
+        if((a1.inizio < a2.fine) && (a2.inizio < a1.fine))
             return 0;
-    }
     return 1;
+}
+
+void solve(attivita_t *attivita, int n){
+    int *opt;
+
+    opt = (int *) calloc((n+1),sizeof(int));
+    printf("Recursive solution: ");
+    printf("combinazione attivita' migliore lunga: %d", solveR(attivita, opt, n-1, n-1));
+}
+
+int solveR(attivita_t *attivita, int *opt, int n, int k){
+    if(k==0)
+        return 0;
+    if(k==1){
+        opt[k] = attivita[k].durata;
+        return opt[k];
+    }
+    if(isvalid(attivita[k], attivita[k-1])){
+        opt[k] = solveR(attivita,opt,n,k-1) + attivita[k].durata;
+        return opt[k];
+    }
+    else{
+        opt[k] = max(solveR(attivita,opt,n,k-1),(solveR(attivita,opt,n,maxComp(attivita, k))+(attivita[k].durata)));
+        return opt[k];
+    }
+        
+}
+
+int max(int n1, int n2){
+    if(n1>=n2)
+        return n1;
+    return n2;
+ }
+
+ int maxComp(attivita_t *attivita, int k){ //attivita precedente compatibile massima
+    int i;
+    for(i=k-2; i>0; i--){
+        if(isvalid(attivita[i],attivita[k]))
+            return i;
+    }
+    return i;
+}
+
+void ordina(attivita_t *attivita, int n){
+    int i;
+    for(i=2; i<n; i++){
+        if(attivita[i-1].fine>attivita[i].fine)
+            swap((i-1), i, attivita);
+        else if(attivita[i-1].fine==attivita[i].fine){
+            if(attivita[i-1].inizio<attivita[i].inizio)
+                swap((i-1), i, attivita);
+        }
+    }
+} 
+
+void swap(int i1, int i2, attivita_t *attivita){
+    attivita_t tmp;
+    tmp.durata = attivita[i1].durata;
+    tmp.fine = attivita[i1].fine;
+    tmp.inizio = attivita[i1].inizio;
+
+    attivita[i1].durata = attivita[i2].durata;
+    attivita[i1].fine = attivita[i2].fine;
+    attivita[i1].inizio = attivita[i2].inizio;
+
+    attivita[i2].durata = tmp.durata;
+    attivita[i2].fine = tmp.fine;
+    attivita[i2].inizio = tmp.inizio;
 }
