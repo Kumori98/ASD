@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define NOMEFILE "att.txt"
+#define NOMEFILE "att2.txt"
 
 typedef struct attivita{
     int inizio, fine, durata;
@@ -8,12 +8,12 @@ typedef struct attivita{
 
 attivita_t *carica_attivita(FILE *fp,attivita_t *attivita, int n_attivita);
 int isvalid(attivita_t a1, attivita_t a2);
-void solve(attivita_t *attivita, int n);
-int solveR(attivita_t *attivita, int *opt, int n, int k);
+void solveDP(attivita_t *attivita, int n);
 int max(int n1, int n2);
 int maxComp(attivita_t *attivita, int k);
 void ordina(attivita_t *attivita, int n);
 void swap(int i1, int i2, attivita_t *attivita);
+void displaySol(int *opt,attivita_t *attivita,int n);
 
 
 
@@ -35,7 +35,7 @@ int main(){
     attivita = carica_attivita(fp, attivita, n_attivita);
 
     ordina(attivita, n_attivita+1);
-    solve(attivita, n_attivita+1);
+    solveDP(attivita, n_attivita+1);
 
     return 0;
 
@@ -59,12 +59,20 @@ int isvalid(attivita_t a1, attivita_t a2){
     return 1;
 }
 
-void solve(attivita_t *attivita, int n){
-    int *opt;
+void solveDP(attivita_t *attivita, int n){
+    int *opt, i;
 
     opt = (int *) calloc((n+1),sizeof(int));
-    printf("Recursive solution: ");
-    printf("combinazione attivita' migliore lunga: %d", solveR(attivita, opt, n-1, n-1));
+    opt[1] = attivita[1].durata;
+    for(i=2; i<n; i++){
+        if(isvalid(attivita[i-1], attivita[i]))
+            opt[i] = opt[i-1] + attivita[i].durata;
+        else
+            opt[i] = opt[maxComp(attivita, i)] + attivita[i].durata;
+    }
+    printf("(Soluzione con programmazione dinamica) ");
+    printf("La combinazione di attivita' migliore e' lunga: %d\n", opt[n-1]);
+    displaySol(opt, attivita, n);
 }
 
 int solveR(attivita_t *attivita, int *opt, int n, int k){
@@ -82,7 +90,7 @@ int solveR(attivita_t *attivita, int *opt, int n, int k){
         opt[k] = max(solveR(attivita,opt,n,k-1),(solveR(attivita,opt,n,maxComp(attivita, k))+(attivita[k].durata)));
         return opt[k];
     }
-        
+     
 }
 
 int max(int n1, int n2){
@@ -125,4 +133,30 @@ void swap(int i1, int i2, attivita_t *attivita){
     attivita[i2].durata = tmp.durata;
     attivita[i2].fine = tmp.fine;
     attivita[i2].inizio = tmp.inizio;
+}
+
+void displaySol(int *opt,attivita_t *attivita,int n){
+    int i, *sol, val, j;
+    sol = (int *) calloc(n,sizeof(int));
+    i=n-1;  //parto dalla fine
+
+    while(i>=1){ 
+        if(opt[i] == opt[i-1]){ // non ho preso quell'attività
+            sol[i] = 0;
+            i--;
+        }
+        else {
+            j=i;
+            while(opt[j] != opt[i-1] + attivita[j].durata){
+                i--;
+                sol[i]=0;
+            }
+            sol[j] = 1;
+            i--;
+        }
+    }
+    for(i=1; i<n; i++){
+        if(sol[i])
+            printf("{%d,%d} ", attivita[i].inizio, attivita[i].fine);
+    }
 }

@@ -2,7 +2,7 @@
 #include <stdlib.h> 
 #define NOMEFILE "val2.txt"
 
-void solvePD(int *val, int n);
+void solveDP(int *val, int n);
 void displaySol(int *opt, int *val, int n);
 
 int main(){
@@ -19,14 +19,14 @@ int main(){
         fscanf(fp, "%d", &val[i]);
     }
 
-    solvePD(val, n_antenne+1);
+    solveDP(val, n_antenne+1);
 
     return 0;
 
 }
 
 
-void solvePD(int *val, int n){
+void solveDP(int *val, int n){
     int *opt, i;
 
     opt = (int *) calloc(n+1,sizeof(int)); //opt[i] contiene il numero di abitanti massimo considerando le antenne<=i
@@ -37,15 +37,15 @@ void solvePD(int *val, int n){
         else   
             opt[i] = opt[i-2] + val[i]; 
     }
-    printf("La massima popolazione coperta e' %d\n", opt[n]);
+    printf("La massima popolazione coperta e' %d con le antenne: \n", opt[n-1]);
     displaySol(opt, val, n);
 }
 
-void dispaySol(int *opt, int *val, int n){ //l'elemento i-esimo appartiene(sol[i]=1) o no(sol[i]=0) alla soluzione?
+void displaySol(int *opt, int *val, int n){ //l'elemento i-esimo appartiene(sol[i]=1) o no(sol[i]=0) alla soluzione?
     int i, j, *sol;
-    sol = (int *) calloc(n,sizeof(int));
+    sol = (int *) calloc((n),sizeof(int));
     sol[1] = 1; //assunzione iniziale poi modificabile
-    i=n;  //parto dalla fine
+    i=n-1;  //parto dalla fine
     while(i>=2){ //mi fermo quando i=2
         if(opt[i] == opt[i-1]){ // non ho messo l'antenna in quella citta, non so nulla sulla citta precedente
             sol[i] = 0;
@@ -57,9 +57,7 @@ void dispaySol(int *opt, int *val, int n){ //l'elemento i-esimo appartiene(sol[i
             i-= 2;
         }
     }
-    for(i=1; i<n; i++){
+    for(i=0; i<n; i++)
         if(sol[i])
-            printf("%d", val[i]);
-        printf("\n");
-    }
+            printf("Antenna %d che copre %d abitanti; \n", i, val[i]);
 }
