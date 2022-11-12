@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define MAXLEN 51
+#define NOMEFILEOUT "out.txt"
 
 
 typedef struct node *link;
@@ -29,7 +30,7 @@ link inserisci_da_tastiera(link h);
 int stampa_menu();
 item_t ricerca(link h);
 item_t ITEMsetvoid();
-void stampa_dato(item_t i, int mess_finale);
+void stampa_dato(item_t i, int mess_finale,FILE *fpout);
 item_t cancella(link *hp);
 void stampa_lista(link h);
 void ciclo_cancella_date(link h);
@@ -54,10 +55,10 @@ int main(){
         head = carica_da_file(head);
         break;
     case 3:
-        stampa_dato(ricerca(head),0);
+        stampa_dato(ricerca(head),0,NULL);
         break;
     case 4:
-        stampa_dato(cancella(&head),0);
+        stampa_dato(cancella(&head),0,NULL);
         printf("Cancellata!\n");
         break;
     case 5:
@@ -88,7 +89,7 @@ void ciclo_cancella_date(link h){
     do
     {
         i = cancella_data(&h, data1, data2);
-        stampa_dato(i,1);
+        stampa_dato(i,1,NULL);
     } while (!is_void(i));
 }
 
@@ -110,9 +111,13 @@ item_t cancella_data(link *hp, data_t data1, data_t data2){
 
 void stampa_lista(link h){
     link x;
+    FILE *fpout;
+
+    fpout = fopen(NOMEFILEOUT, "w");
     for(x=h; x!=NULL; x=x->next){
-        stampa_dato(x->val,1);
+        stampa_dato(x->val,1,fpout);
     }
+    fclose(fpout);
 }
 
 item_t cancella(link *hp){
@@ -230,7 +235,7 @@ item_t ITEMsetvoid(){
 }
 
 
-void stampa_dato(item_t i, int mess_finale){
+void stampa_dato(item_t i, int mess_finale, FILE *fp){
     if(is_void(i)){
         if(mess_finale==0)
             printf("Anagrafica non trovata;\n");
@@ -238,7 +243,10 @@ void stampa_dato(item_t i, int mess_finale){
             printf("Fine;\n");
         return;
     }
-    printf("%s %s %s %d/%d/%d %s %s %d \n", i.codice, i.nome, i.cognome, i.data_di_nascita.giorno, i.data_di_nascita.mese, i.data_di_nascita.anno, i.via, i.citta, i.cap);
+    if(fp==NULL)
+        printf("%s %s %s %d/%d/%d %s %s %d \n", i.codice, i.nome, i.cognome, i.data_di_nascita.giorno, i.data_di_nascita.mese, i.data_di_nascita.anno, i.via, i.citta, i.cap);
+    else
+        fprintf(fp, "%s %s %s %d/%d/%d %s %s %d \n", i.codice, i.nome, i.cognome, i.data_di_nascita.giorno, i.data_di_nascita.mese, i.data_di_nascita.anno, i.via, i.citta, i.cap);
 }
 
 int is_void(item_t i){

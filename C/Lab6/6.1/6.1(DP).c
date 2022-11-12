@@ -108,14 +108,13 @@ int max(int n1, int n2){
     return i;
 }
 
-void ordina(attivita_t *attivita, int n){
-    int i;
-    for(i=2; i<n; i++){
-        if(attivita[i-1].fine>attivita[i].fine)
-            swap((i-1), i, attivita);
-        else if(attivita[i-1].fine==attivita[i].fine){
-            if(attivita[i-1].inizio<attivita[i].inizio)
-                swap((i-1), i, attivita);
+void ordina(attivita_t *attivita, int n){ //bubblesort
+    int i, j, l=1, r=n-2;
+    for(i=l; i<=r; i++){
+        for(j=l; j<r-i+; j++){
+            if(attivita[j].fine > attivita[j+1].fine){
+                swap(j,j+1,attivita);
+            }
         }
     }
 } 
