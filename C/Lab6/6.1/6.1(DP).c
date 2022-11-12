@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define NOMEFILE "att2.txt"
+#define NOMEFILE "att.txt"
 
 typedef struct attivita{
     int inizio, fine, durata;
@@ -109,14 +109,19 @@ int max(int n1, int n2){
 }
 
 void ordina(attivita_t *attivita, int n){ //bubblesort
-    int i, j, l=1, r=n-2;
+    int i, j, l=1, r=n-1;
     for(i=l; i<=r; i++){
-        for(j=l; j<r-i+; j++){
+        for(j=l; j<r-i+l; j++){
             if(attivita[j].fine > attivita[j+1].fine){
                 swap(j,j+1,attivita);
             }
+            if(attivita[j].fine==attivita[j+1].fine){
+                if(attivita[j].durata > attivita[j+1].durata)
+                    swap(j,j+1,attivita);
+            }
         }
     }
+    return;
 } 
 
 void swap(int i1, int i2, attivita_t *attivita){
