@@ -1,5 +1,8 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "invArray.h"
-#define NOMEFILE "inv.txt"
 #define NOMEFILEOUT "out.txt"
 
 struct invArray_s{
@@ -10,7 +13,7 @@ struct invArray_s{
 
 invArray_t invArray_init(){
     invArray_t invArray;
-    invArray = malloc(sizeof(invArray_t));
+    invArray = malloc(sizeof(*invArray));
     invArray->nInv = 0;
     return invArray;
 }
@@ -22,12 +25,9 @@ void invArray_free(invArray_t invArray){
 
 void invArray_read(FILE *fp, invArray_t invArray){
     int i;
-
-    fp = fopen(NOMEFILE, "r");
-    if(fp==NULL)
-        return;
+    
     fscanf(fp, "%d", &invArray->nInv);
-    invArray = malloc(invArray->nInv*sizeof(inv_t));
+    invArray->vettInv = malloc(invArray->nInv*sizeof(inv_t));
     for(i=0; i<invArray->nInv; i++){
         inv_read(fp, &invArray->vettInv[i]);
     }

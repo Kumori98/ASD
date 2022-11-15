@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "pg.h"
 
 int pg_read(FILE *fp, pg_t *pgp){
@@ -29,14 +33,13 @@ void pg_updateEquip(pg_t *pgp, invArray_t invArray){
     inv_t *inv;
 
     equipArray_update(pgp->equip, invArray);
-    pgp->eq_stat = pgp->b_stat;
+
+    pgp->eq_stat = pgp->b_stat; //resetto le statistiche
     for(i=0;i<EQUIP_SLOT;i++) {
         eq = equipArray_getEquipByIndex(pgp->equip, i);
         if (eq == -1)
             continue;
         inv = invArray_getByIndex(invArray, eq);
-        if (inv == NULL)
-            continue;
         pgp->eq_stat.hp = (pgp->eq_stat.hp + inv_getStat(inv).hp);
         pgp->eq_stat.mp = (pgp->eq_stat.mp + inv_getStat(inv).mp);
         pgp->eq_stat.atk = (pgp->eq_stat.atk + inv_getStat(inv).atk);

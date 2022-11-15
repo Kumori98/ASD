@@ -1,15 +1,18 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "equipArray.h"
 
 struct equipArray_s{
-    int *vettEq;
+    int vettEq[EQUIP_SLOT];
     int inUso;
 };
 
 equipArray_t equipArray_init(){
     int i;
     equipArray_t equipArray;
-    equipArray = malloc(sizeof(equipArray_t));
-    equipArray->vettEq = malloc(EQUIP_SLOT*sizeof(int)); //uso indici
+    equipArray = malloc(sizeof(*equipArray));
     for(i=0; i<EQUIP_SLOT; i++)
         equipArray->vettEq[i] = -1;
     equipArray->inUso = 0;
@@ -17,7 +20,6 @@ equipArray_t equipArray_init(){
 }
 
 void equipArray_free(equipArray_t equipArray){
-    free(equipArray->vettEq);
     free(equipArray);
 }
 
@@ -50,7 +52,7 @@ void equipArray_update(equipArray_t equipArray, invArray_t invArray){
 
     if(scelta == 1){
         for(i=0; i<EQUIP_SLOT; i++){
-            if(equipArray->vettEq[i] != -1){
+            if(equipArray->vettEq[i] == -1){
                 equipArray->vettEq[i] = eq;
                 equipArray->inUso++;
                 printf("Oggetto aggiunto!\n");
@@ -59,7 +61,7 @@ void equipArray_update(equipArray_t equipArray, invArray_t invArray){
         }
         printf("Oggetto non trovato!\n");
     }
-    if(scelta == 2){
+    else if(scelta == 2){
          for(i=0; i<EQUIP_SLOT; i++){
             if(equipArray->vettEq[i] == eq){
                 equipArray->vettEq[i] = -1;

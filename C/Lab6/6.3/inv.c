@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "inv.h"
 
 void stat_read(FILE *fp, stat_t *statp){ //fopen fatta in pgList
@@ -37,12 +41,12 @@ void stat_print(FILE *fp, stat_t *statp, int soglia){
 
 void inv_read(FILE *fp, inv_t *invp){
     fscanf(fp, "%s %s", invp->nome, invp->tipo);
-    stat_read(fp, &invp->stat);
+    stat_read(fp, &(invp->stat));
 }
 
 void inv_print(FILE *fp, inv_t *invp){
     fprintf(fp, "%s %s ", invp->nome, invp->tipo);
-    stat_print(fp, &invp->stat, 0);
+    stat_print(fp, &(invp->stat), 0);
 }
 
 stat_t inv_getStat(inv_t *invp){
