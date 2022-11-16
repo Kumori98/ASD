@@ -4,10 +4,12 @@
 
 #include "pgList.h"
 
-typedef struct nodoPg_s {
+typedef struct nodoPg_s *link;
+
+struct nodoPg_s {
   pg_t pg;
   struct nodoPg_s *next;
-} nodoPg_t, *link;
+};
 
 struct pgList_s {
   link head, tail;
@@ -22,7 +24,9 @@ link newNode(pg_t pg, link next) {
 }
 
 pgList_t pgList_init() {
-  pgList_t pgList = calloc(1, sizeof(*pgList));
+  pgList_t pgList = malloc(sizeof(*pgList));
+  pgList->head = NULL;
+  pgList->nPg = 0;
   return pgList;
 }
 
