@@ -19,8 +19,8 @@ void pg_clean(pg_t *pgp){
 }
 
 void pg_print(FILE *fp, pg_t *pgp, invArray_t invArray){
-    fprintf(fp, "%s %s %s", pgp->cod, pgp->nome, pgp->classe);
-    stat_print(fp, &pgp->b_stat, 1); //devo fare il check della soglia
+    fprintf(fp, "%s %s %s ", pgp->cod, pgp->nome, pgp->classe);
+    stat_print(fp, &pgp->b_stat, 1); 
     if(equipArray_inUse(pgp->equip)>0){
         fprintf(fp, " Con eq: ");
         stat_print(fp, &pgp->eq_stat, 1);

@@ -7,7 +7,7 @@
 #include "pg.h"
 
 #define N_SCELTE 7
-#define DBG 1
+#define DBG 0            
 
 enum { falso, vero };
 typedef int bool;

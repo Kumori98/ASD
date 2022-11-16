@@ -10,33 +10,13 @@ void stat_read(FILE *fp, stat_t *statp){ //fopen fatta in pgList
 
 void stat_print(FILE *fp, stat_t *statp, int soglia){
     if(soglia){
-        if(statp->hp<0)
-            fprintf(fp, "HP=0 ");
-        else
-            fprintf(fp, "HP=%d ", statp->hp);
-        if(statp->mp<0)
-            fprintf(fp, "MP=0 ");
-        else
-            fprintf(fp, "MP=%d ", statp->mp);
-        if(statp->atk<0)
-            fprintf(fp, "ATK=0 ");
-        else
-            fprintf(fp, "ATK=%d ", statp->atk);
-        if(statp->def<0)
-            fprintf(fp, "DEF=0 ");
-        else
-            fprintf(fp, "DEF=%d ", statp->def);
-        if(statp->mag<0)
-            fprintf(fp, "MAG=0 ");
-        else
-            fprintf(fp, "MAG=%d ", statp->mag);
-        if(statp->spr<0)
-            fprintf(fp, "SPR=0 ");
-        else
-            fprintf(fp, "SPR=%d ", statp->spr);
+        fprintf(fp, "HP = %d, MP = %d, ATK = %d, DEF = %d, MAG = %d, SPR = %d\n",
+            (statp->hp > 0 ? statp->hp : MIN_STAT), (statp->mp > 0 ? statp->mp : MIN_STAT),
+            (statp->atk > 0 ? statp->atk : MIN_STAT), (statp->def > 0 ? statp->def : MIN_STAT),
+            (statp->mag > 0 ? statp->mag : MIN_STAT), (statp->spr > 0 ? statp->spr : MIN_STAT));
     }
     else
-        fprintf(fp, "HP=%d MP=%d ATK=%d DEF=%d MAG=%d SPR=%d", statp->hp, statp->mp, statp->atk, statp->def, statp->mag, statp->spr);
+        fprintf(fp, "HP=%d MP=%d ATK=%d DEF=%d MAG=%d SPR=%d\n", statp->hp, statp->mp, statp->atk, statp->def, statp->mag, statp->spr);
 }
 
 void inv_read(FILE *fp, inv_t *invp){

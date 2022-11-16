@@ -58,8 +58,8 @@ void equipArray_update(equipArray_t equipArray, invArray_t invArray){
                 printf("Oggetto aggiunto!\n");
                 break;
             }
+            printf("Oggetto non trovato!\n");
         }
-        printf("Oggetto non trovato!\n");
     }
     else if(scelta == 2){
          for(i=0; i<EQUIP_SLOT; i++){
@@ -69,11 +69,13 @@ void equipArray_update(equipArray_t equipArray, invArray_t invArray){
                 printf("Oggetto rimosso!\n");
                 break;
             }
-        }
         printf("Oggetto non trovato!\n");
+        }
     }
 }
 
 int equipArray_getEquipByIndex(equipArray_t equipArray, int index){
+    if (index < 0 || index >= EQUIP_SLOT)
+        return -1;
     return equipArray->vettEq[index];
 }
