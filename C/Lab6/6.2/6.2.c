@@ -1,16 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define NOMEFILE "hard_test_set.txt"
+#define N 4
 
-int ricerca_max(int *pietre, int *scelte, int pietre_distinte, int *sol);
-int is_valid(int *pietre, int *sol, int pos, int k);
-int disp_rip(int pos, int *pietre, int *scelte, int *sol, int n, int k);
+int ****alloca4d(int *pietre);
+int ricerca_max(int *scelte, int *pietre, int tot);
+int fZ(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s);
+int fR(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s);
+int fT(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s);
+int fS(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s);
+int max (int n1, int n2);
+
+
 
 int main(){
     FILE *fp;
-    int n_test, i, pietre[4], tot, max, *sol, j, pietre_dist=0, *scelte;
-
-
+    int n_test, i, pietre[4], tot, max, j, pietre_dist=0, *scelte;
 
     fp = fopen(NOMEFILE, "r");
     if(fp==NULL){
@@ -32,100 +37,108 @@ int main(){
         scelte = (int *) malloc(pietre_dist*sizeof(int));
         for(j=0; j<pietre_dist;j++)
             scelte[j]=j;
-        sol = (int *) malloc(tot*sizeof(int)); //soluzione massima di dimensione tot
-        max = ricerca_max(pietre, scelte, pietre_dist, sol);
+        max = ricerca_max(scelte, pietre, tot);
         printf("TEST #%d\n", i+1);
         printf("zaffiri = %d, rubini = %d, topazi = %d, smeraldi = %d, TOT=%d \n", pietre[0], pietre[1], pietre[2], pietre[3], tot);
-        printf("La collana massima,di lunghezza %d, e' :\n", max);
-        printf("-");
-        for(j=0; j<max; j++){
-            switch (sol[j])
-            {
-            case 0:
-                printf("z-");
-                break;
-            case 1:
-                printf("r-");
-                break;
-            case 2:
-                printf("t-");
-                break;
-            case 3:
-                printf("s-");
-                break;
-            default:
-                break;
-            }
-        }
-        printf("\n");
-        free(sol);
-        free(scelte);
+        printf("La collana massima è lunga %d\n", max);
     }
-
+    free(scelte);
+    fclose(fp);
     return 0;
 }
 
-int ricerca_max(int *pietre, int *scelte, int pietre_distinte, int *sol){
-    int k, max, i, *pietre_copy, k_max;
-    
-    pietre_copy = (int *) malloc(pietre_distinte*sizeof(int)); 
-
-    if(pietre[1]<pietre[2])
-        k_max = pietre[0] + pietre[3] + 2*(pietre[1]+1);
-    else
-        k_max = pietre[0] + pietre[3] + 2*(pietre[2]+1);
-    for(k=k_max; k>0; k--){   //trovo la soluzione valida massima per ogni k
-        for(i=0; i<pietre_distinte; i++) //setto nuovamente le pietre
-            pietre_copy[i]=pietre[i];
-        max = disp_rip(0, pietre_copy, scelte, sol, pietre_distinte, k);
-        if(max != -1)
-            break;
-    }
-    free(pietre_copy);
-    return max;
-}
-
-int disp_rip(int pos, int *pietre, int *scelte, int *sol, int n, int k){
-    int i, max=-1;
-    if(pos==k)
-            return k; //soluzione valida di lunghezza k
-    for(i=0; i<n && max==-1; i++){
-        sol[pos] = scelte[i];
-        if(is_valid(pietre,sol,pos,k)){ //pruning (controllo la validità della soluzione parziale)
-            max = disp_rip(pos+1, pietre, scelte, sol, n, k);
-            if(max==-1)
-                pietre[sol[pos]]++; 
+int ****alloca4d(int *pietre){
+  int ****mat4D;
+  int i, j, x, y;
+  mat4D = malloc((1+pietre[0]) * sizeof(int***));
+  for(i=0;i<=pietre[0];i++) {
+    mat4D[i] = malloc((1+pietre[1]) * sizeof(int**));
+    for(j=0;j<=pietre[1];j++) {
+      mat4D[i][j] = malloc((1+pietre[2]) * sizeof(int*));
+      for(x=0;x<=pietre[2];x++) {
+        mat4D[i][j][x] = malloc((1+pietre[3]) * sizeof(int));
+        for(y=0;y<=pietre[3];y++) {
+          mat4D[i][j][x][y] = -1; 
         }
+      }
     }
-    return max;
+  }
+  return mat4D;
 }
 
-int is_valid(int *pietre, int *sol, int pos, int k){
+int ricerca_max(int *scelte, int *pietre, int tot){
+    int ****Z, ****R, ****S, ****T;
+    int maxZ, maxR, maxT, maxS;
+    int z=pietre[0], r=pietre[1], t=pietre[2], s=pietre[3];
 
-        switch (sol[pos]) // controllo se ci sono ancora pietre di quel tipo e se possono stare li
-        {
-        case 0:
-            if(((sol[pos-1]!=0  && sol[pos-1]!=2) && (pos!=0)) || pietre[0]==0) //zaffiro deve essere preceduto da uno zaffiro o topazio
-                return 0;
-            pietre[0]--;
-            break;
-        case 1:
-            if(((sol[pos-1]!=0  && sol[pos-1]!=2)  && (pos!=0)) || pietre[1]==0) //rubino deve essere preceduto da uno zaffiro o topazio
-                return 0;    
-            pietre[1]--; 
-            break;
-        case 2:
-            if(((sol[pos-1]!=1  && sol[pos-1]!=3) && (pos!=0)) || pietre[2]==0) //topazio deve essere preceduto da un rubino o uno smeraldo
-                return 0;
-            pietre[2]--;
-            break;
-        case 3:
-            if(((sol[pos-1]!=1  && sol[pos-1]!=3) && (pos!=0)) || pietre[3]==0) //smeraldo deve essere preceduto da uno smeraldo o rubino
-                return 0;
-            pietre[3]--;
-            break;
-        default:
-            return 0;
-        }
-    return 1;
+  Z = alloca4d(pietre);
+  R = alloca4d(pietre);
+  T = alloca4d(pietre);
+  S = alloca4d(pietre);
+
+  maxZ = fZ(Z, R, T, S, z, r, t, s);
+  maxR = fR(Z, R, T, S, z, r, t, s);
+  maxT = fT(Z, R, T, S, z, r, t, s);
+  maxS = fS(Z, R, T, S, z, r, t, s);
+
+  return max(maxZ, max(maxR, max(maxT, maxS)));
 }
+
+int fZ(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s) {
+  int nextZ, nextR;
+  if (z <= 0)
+    return 0;
+  if (Z[z][r][t][s] != -1)
+    return Z[z][r][t][s];
+  /* Z seguito da Z o R */
+  nextZ = fZ(Z,R,T,S,z-1,r,t,s);
+  nextR = fR(Z,R,T,S,z-1,r,t,s);
+  Z[z][r][t][s] = 1+max(nextZ,nextR);
+  return Z[z][r][t][s];
+}
+
+int fR(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s) {
+  int nextS, nextT;
+  if (r <= 0)
+    return 0;
+  if (R[z][r][t][s] != -1)
+    return R[z][r][t][s];
+  /* R seguito da S o T */
+  nextS = fS(Z,R,T,S,z,r-1,t,s);
+  nextT = fT(Z,R,T,S,z,r-1,t,s);
+  R[z][r][t][s] = 1+max(nextS,nextT);
+  return R[z][r][t][s];
+}
+
+int fT(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s) {
+  int nextZ, nextR;
+  if (t <= 0)
+    return 0;
+  if (T[z][r][t][s] != -1)
+    return T[z][r][t][s];
+  /* T seguito da Z o R */
+  nextZ = fZ(Z,R,T,S,z,r,t-1,s);
+  nextR = fR(Z,R,T,S,z,r,t-1,s);
+  T[z][r][t][s] = 1+max(nextZ,nextR);
+  return T[z][r][t][s];
+}
+
+int fS(int ****Z, int ****R, int ****T, int ****S, int z, int r, int t, int s) {
+  int nextS, nextT;
+  if (s <= 0)
+    return 0;
+  if (S[z][r][t][s] != -1)
+    return S[z][r][t][s];
+  /* S seguito da S o T */
+  nextS = fS(Z,R,T,S,z,r,t,s-1);
+  nextT = fT(Z,R,T,S,z,r,t,s-1);
+  S[z][r][t][s] = 1+max(nextS,nextT);
+  return S[z][r][t][s];
+}
+
+int max (int n1, int n2){
+    if (n1 > n2)
+        return n1;
+    return n2;
+}
+
