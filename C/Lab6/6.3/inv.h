@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #define LEN 100
-#define MIN_STAT 0
+#define MIN_STAT 1
 
 /* quasi ADT statistiche */
 typedef struct stat_s {
