@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#define MAXDIAG 2
+#define MAXDIAG 3
 #define MAXELEM 5
 #define MAXLEN 101
 
@@ -20,15 +20,8 @@ typedef struct programma{
     int difficolta;
 }programma_t;
 
-typedef struct nodo *link; //lista
-
-typedef struct nodo{
-    diagonale_t diagonale;
-    link next;
-}nodo_t;
-
 struct diagonali{ //wrapper lista
-    link head;
+    diagonale_t *diagonali;
     int n;
 }diagonali;
 
@@ -38,9 +31,10 @@ struct elementi{
 }elementi;
 
 int caricaElementi(FILE *fp, struct elementi *p_el);
-int powerset(int pos, struct elementi *el, int *sol, int cnt, link h, int DD);
-link newNode(struct elementi *el, int *sol, link h);
+int disp_rip(int pos, struct elementi *el, int *sol, int cnt, struct diagonali *diagonali, int DD, int k);
 int isvalid(elemento_t el, int DD);
+diagonale_t newDiag(struct elementi *el, int *sol, int k);
+int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD);
 
 
 elemento_t last;
@@ -48,25 +42,28 @@ elemento_t last;
 
 int main(){
     struct elementi *p_el;
-    int DD, DP,*sol;
+    int DD=10, DP=20;
     FILE *fp;
     struct diagonali diagonali;
 
+    diagonali.n = 0;
     p_el = (struct elementi*) malloc(sizeof(struct elementi));
     fp = fopen("elementi.txt", "r");
     if(!(caricaElementi(fp, p_el)))
         return -1;
 
-    printf("Inserisci la difficoltà massima per le diagonali e per il programma: ");
-    scanf("%d %d", &DD, &DP);
+    //printf("Inserisci la difficoltà massima per le diagonali e per il programma: ");
+    //scanf("%d %d", &DD, &DP);
 
-    diagonali.head = malloc(sizeof(nodo_t));
-    sol = (int *) malloc(p_el->n*(sizeof(int)));
+    diagonali.diagonali = (diagonale_t*) malloc((p_el->n^MAXELEM)*sizeof(diagonale_t)); //sovralloco il numero di diagonali che saranno sicuramente meno dopo il filtraggio
     last.direzione_out =-1; //sentinella per calcolo powerset
-    diagonali.n = powerset(0,p_el,sol,0,diagonali.head, DD);
+    diagonali.n = calcoloDiagonali(p_el,&diagonali,DD);
 
     printf("%d", diagonali.n);
 
+    free(p_el->elementi);
+    free(p_el);
+    free(diagonali.diagonali);
     return 0;
 }
 
@@ -89,79 +86,83 @@ int caricaElementi(FILE *fp, struct elementi *p_el){
 }
 
 int acrobatico = 0;
-int n_elementi = 0;
 int diff_diag = 0;
 float val_diag = 0;
 
-int powerset(int pos, struct elementi *el, int *sol, int cnt, link h, int DD){
-    if(pos>=el->n){
+int disp_rip(int pos, struct elementi *el, int *sol, int cnt, struct diagonali *diagonali, int DD, int k){
+    int i;
+    if(pos==k){
         if(acrobatico>0){
-            h = newNode(el,sol,h); //inserisco in testa
-            return cnt+1;            
+            diagonali->diagonali[cnt] = newDiag(el,sol,k); 
+            return 1;            
         }
-        return cnt;
+        return 0;
     }
 
-    sol[pos]=0;
-    cnt = powerset(pos+1,el,sol,cnt,h, DD);
-    if(isvalid(el->elementi[pos],DD)){
-        sol[pos]=1;
-        cnt = powerset(pos+1,el,sol,cnt,h, DD);
-        diff_diag -= last.difficolta;
-        val_diag -= last.valore;
-        if(last.tipologia == 2 || last.tipologia == 1)
-            acrobatico--;
-        n_elementi--;
+    for(i=0; i<el->n; i++){
+         if(isvalid(el->elementi[i],DD)){
+            sol[pos]=i;
+            cnt += disp_rip(pos+1, el, sol, cnt, diagonali, DD, k);
+            diff_diag -= last.difficolta;
+            if(diff_diag == 0)
+                last.direzione_out=-1;
+            val_diag -= last.valore;
+            if(last.tipologia == 2 || last.tipologia == 1)
+                acrobatico--;
+         }
     }
     return cnt;
 }
 
-link newNode(struct elementi *el, int *sol, link h){
-    int i, j=0;
+diagonale_t newDiag(struct elementi *el, int *sol, int k){
+    int i;
     diagonale_t diagonale;
-    link x = malloc(sizeof(*x));
     
-    for(i=0; i<el->n; i++){
-        if(sol[i]==1){
-           diagonale.elemento[j] = el->elementi[i];
-           j++;
-        }
-    }
-    diagonale.n = j;
+    for(i=0; i<k; i++)
+        diagonale.elemento[i] = el->elementi[i];
+    diagonale.n = k;
     diagonale.difficolta = diff_diag;
     diagonale.valore = val_diag;
-    x->diagonale = diagonale;
-    x->next = h;
 
-    return x;
+    return diagonale;
 }
 
 int isvalid(elemento_t el, int DD){
-    if(last.direzione_out == -1){
+    if(last.direzione_out == -1){ //primo elemento della diagonale
         if(el.direzione_in==1 && el.precedenza==0){
             if(el.tipologia==2 || el.tipologia==1)
                 acrobatico++;
             last = el;
             diff_diag = el.difficolta;
             val_diag = el.valore;
-            n_elementi = 1;
             return 1;
         }
         return 0;
     }
 
-    if((last.direzione_out == el.direzione_in) && (n_elementi+1<5) && (diff_diag+el.difficolta<DD) && (last.finale==0)) {
+    if((last.direzione_out == el.direzione_in) && (diff_diag+el.difficolta<DD) && (last.finale==0)) {
         if(el.tipologia == 2 || el.tipologia == 1)
             acrobatico++; 
             last = el;
             diff_diag += el.difficolta;
             val_diag += el.valore;
-            n_elementi++;
             last.direzione_out = el.direzione_out;
             return 1;
     }
         return 0;
 
+}
+
+int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD){
+    int *sol, k;
+
+    sol = (int *) calloc(MAXELEM,sizeof(int));
+    for(k=1; k<=MAXELEM; k++){
+        diagonali->n += disp_rip(0,p_el,sol,diagonali->n,diagonali, DD, k);
+    }
+    diagonali->diagonali = realloc(diagonali->diagonali,diagonali->n*sizeof(diagonale_t));
+    free(sol);
+    return diagonali->n;
 }
 
 
