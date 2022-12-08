@@ -36,7 +36,7 @@ struct elementi{
 }elementi;
 
 int diff_diag=0;
-int diff_prog = 0;
+int diff_prog=0;
 int acrobatico_av=0;
 int acrobatico_ind=0;
 int acrobatico_seq=0;
@@ -44,7 +44,7 @@ int size = 1000; //per allocare il vettore di diagonali
 
 int caricaElementi(FILE *fp, struct elementi *p_el);
 int disp_rip_diag(int pos, struct elementi *el, int *sol, int cnt, struct diagonali *diagonali, int DD, int k);
-int isvalid(elemento_t *el, int DD, int pos, int k,  int i);
+int isvalid(elemento_t *el, int DD, int pos, int k,  int i, int last);
 diagonale_t newDiag(struct elementi *el, int *sol, int k);
 int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD);
 programma_t calcolaProgramma(struct diagonali diagonali, int DP);
@@ -99,7 +99,7 @@ int caricaElementi(FILE *fp, struct elementi *p_el){
     p_el->elementi = (elemento_t*) malloc(p_el->n*(sizeof(elemento_t)));
     for(i=0; i<p_el->n; i++){
          fscanf(fp, "%s %d %d %d %d %d %f %d", p_el->elementi[i].nome, &p_el->elementi[i].tipologia, &p_el->elementi[i].direzione_in, &p_el->elementi[i].direzione_out, &p_el->elementi[i].precedenza, &p_el->elementi[i].finale, &p_el->elementi[i].valore, &p_el->elementi[i].difficolta);
-         p_el->elementi[i].seq = -1;
+         p_el->elementi[i].seq = 0;
     }
 
     fclose(fp);
@@ -120,17 +120,18 @@ int disp_rip_diag(int pos, struct elementi *el, int *sol, int cnt, struct diagon
         return cnt;
     }
     for(i=0; i<el->n; i++){
-         if(isvalid(el->elementi, DD, pos, k, i)){
+         if(isvalid(el->elementi, DD, pos, k, i, sol[pos-1])){
             sol[pos]=i;
             cnt = disp_rip_diag(pos+1, el, sol, cnt, diagonali, DD, k);
                 diff_diag -= el->elementi[i].difficolta;
-                if(el->elementi[i].tipologia == 2)
+                if(el->elementi[i].tipologia==2)
                     acrobatico_av--;
-                if(el->elementi[i].tipologia == 1)
+                if(el->elementi[i].tipologia==1)
                     acrobatico_ind--;
-                if(el->elementi[i].seq==1)
+                if(el->elementi[i].seq==1){
                     acrobatico_seq--;
-                sol[i] = -1; //solo per debug
+                    el->elementi[i].seq=0;
+                }
          }
     }
     return cnt;
@@ -158,7 +159,7 @@ diagonale_t newDiag(struct elementi *el, int *sol, int k){
     return diagonale;
 }
 
-int isvalid(elemento_t *el, int DD, int pos, int k, int i){
+int isvalid(elemento_t *el, int DD, int pos, int k, int i, int last){
     if(pos==0){ //primo elemento della diagonale
         if(el[i].direzione_in==1 && el[i].precedenza==0 && el[i].difficolta<DD){
             if(el[i].tipologia == 2)
@@ -172,17 +173,17 @@ int isvalid(elemento_t *el, int DD, int pos, int k, int i){
     }
 
     if(pos+1==k){ //ultimo elemento
-        if((el[i-1].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD)) {
+        if((el[last].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD)) {
             if(el[i].tipologia == 2){
                 acrobatico_av++;
-                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                if(el[last].tipologia == 1 || el[last].tipologia == 2){
                     el[i].seq=1;
                     acrobatico_seq++;
                     }
                 }
             if(el[i].tipologia == 1){
                 acrobatico_ind++;
-                    if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                    if(el[last].tipologia == 1 || el[last].tipologia == 2){
                         el[i].seq=1;
                         acrobatico_seq++;
                     }
@@ -194,16 +195,16 @@ int isvalid(elemento_t *el, int DD, int pos, int k, int i){
 
     }
 
-    if((el[i-1].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD) && (el[i].finale==0)){
+    if((el[last].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD) && (el[i].finale==0)){
         if(el[i].tipologia == 2){
                 acrobatico_av++;
-                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                if(el[last].tipologia == 1 || el[last].tipologia == 2){
                     el[i].seq=1;
                     acrobatico_seq++;
                     }
         if(el[i].tipologia == 1){
                 acrobatico_ind++;
-                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                if(el[last].tipologia == 1 || el[last].tipologia == 2){
                     el[i].seq=1;
                     acrobatico_seq++;
                 }  
@@ -223,6 +224,8 @@ int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD)
 
     for(k=0; k<MAXELEM; k++)
         sol[k]=-1;
+    
+    diagonali->n = 0;
 
     for(k=1; k<MAXELEM+1; k++){
         diagonali->n += disp_rip_diag(0,p_el,sol,diagonali->n,diagonali, DD, k);
