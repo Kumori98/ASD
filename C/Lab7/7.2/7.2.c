@@ -21,7 +21,7 @@ typedef struct diagonale{
 
 typedef struct programma{
     diagonale_t diagonali[MAXDIAG];
-    int difficolta, n;
+    int difficolta;
     float valore;
 }programma_t;
 
@@ -35,21 +35,20 @@ struct elementi{
     int n; 
 }elementi;
 
-diagonale_t last_d;
-diagonale_t sample;
-elemento_t last;
+int diff_diag=0;
+int diff_prog = 0;
 int acrobatico_av=0;
 int acrobatico_ind=0;
 int acrobatico_seq=0;
-int size = 14000; //per allocare il vettore di diagonali
+int size = 1000; //per allocare il vettore di diagonali
 
 int caricaElementi(FILE *fp, struct elementi *p_el);
 int disp_rip_diag(int pos, struct elementi *el, int *sol, int cnt, struct diagonali *diagonali, int DD, int k);
-int isvalid(elemento_t el, int DD, int pos, int k,  diagonale_t *diagonale);
-void riempiDiag(struct elementi *el, int *sol, int k, diagonale_t *diagonale);
+int isvalid(elemento_t *el, int DD, int pos, int k,  int i);
+diagonale_t newDiag(struct elementi *el, int *sol, int k);
 int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD);
-float calcolaProgramma(programma_t *programma, struct diagonali diagonali, int DP);
-void disp_rip_progr(int pos, struct diagonali diag, int *sol, programma_t *programma, int DP, int k);
+programma_t calcolaProgramma(struct diagonali diagonali, int DP);
+programma_t disp_rip_progr(int pos, struct diagonali diag, int *sol, int best_progr_val, int DP, int k, programma_t best);
 
 
 int main(){
@@ -72,9 +71,9 @@ int main(){
     diagonali.diagonali = (diagonale_t*) malloc((size)*sizeof(diagonale_t)); //eventualmente rialloco
     diagonali.n = calcoloDiagonali(p_el,&diagonali,DD);
 
-    programma.valore = calcolaProgramma(&programma, diagonali, DP);
+    programma = calcolaProgramma(diagonali, DP);
     printf("-- Test con DD= %d e DP=%D --\n Totale: %d", DD, DP, programma.valore);
-    for(i=0; i<programma.n; i++){
+    for(i=0; i<MAXDIAG; i++){
         printf("Diagonale #%d > %f\n", i, programma.diagonali[i].valore);
         for(j=0; j<programma.diagonali[i].n; j++)
             printf("%s ", programma.diagonali[i].elemento[j].nome);
@@ -98,8 +97,10 @@ int caricaElementi(FILE *fp, struct elementi *p_el){
 
     fscanf(fp, "%d", &p_el->n);
     p_el->elementi = (elemento_t*) malloc(p_el->n*(sizeof(elemento_t)));
-    for(i=0; i<p_el->n; i++)
-        fscanf(fp, "%s %d %d %d %d %d %f %d", p_el->elementi[i].nome, &p_el->elementi[i].tipologia, &p_el->elementi[i].direzione_in, &p_el->elementi[i].direzione_out, &p_el->elementi[i].precedenza, &p_el->elementi[i].finale, &p_el->elementi[i].valore, &p_el->elementi[i].difficolta);
+    for(i=0; i<p_el->n; i++){
+         fscanf(fp, "%s %d %d %d %d %d %f %d", p_el->elementi[i].nome, &p_el->elementi[i].tipologia, &p_el->elementi[i].direzione_in, &p_el->elementi[i].direzione_out, &p_el->elementi[i].precedenza, &p_el->elementi[i].finale, &p_el->elementi[i].valore, &p_el->elementi[i].difficolta);
+         p_el->elementi[i].seq = -1;
+    }
 
     fclose(fp);
     return 1;
@@ -108,118 +109,105 @@ int caricaElementi(FILE *fp, struct elementi *p_el){
 int disp_rip_diag(int pos, struct elementi *el, int *sol, int cnt, struct diagonali *diagonali, int DD, int k){
     int i, j;
     if(pos>=k){
-        if(diagonali->diagonali[cnt].acrobatico_av>0 || diagonali->diagonali[cnt].acrobatico_ind>0){
-            if(cnt+5>=size){
+        if(acrobatico_av>0 || acrobatico_ind>0){
+            if(cnt>=size){
                 size = 2*size;
                 diagonali->diagonali = realloc(diagonali->diagonali,size*sizeof(diagonale_t));
-                for(j=(size/2)-1; j<size; j++) //setto a default tutte le nuove diagonali allocate
-                    diagonali->diagonali[j] = sample;
             }
-            riempiDiag(el,sol,k,&(diagonali->diagonali[cnt])); 
+            diagonali->diagonali[cnt] = newDiag(el,sol,k); 
             cnt++;         
         }
         return cnt;
     }
     for(i=0; i<el->n; i++){
-         if(isvalid(el->elementi[i], DD, pos, k, &(diagonali->diagonali[cnt]))){
+         if(isvalid(el->elementi, DD, pos, k, i)){
             sol[pos]=i;
             cnt = disp_rip_diag(pos+1, el, sol, cnt, diagonali, DD, k);
-            if(diagonali->diagonali[cnt].difficolta!=0){ //se sto facendo backtrack
-                diagonali->diagonali[cnt].difficolta -= last.difficolta;
-                diagonali->diagonali[cnt].valore -= last.valore;
-                if(last.tipologia == 2)
-                    diagonali->diagonali[cnt].acrobatico_av--;
-                if(last.tipologia == 1)
-                    diagonali->diagonali[cnt].acrobatico_ind--;
-                if(last.seq==1)
-                    diagonali->diagonali[cnt].acrobatico_seq--;
-            }
-            if(pos!=0)
-                last = el->elementi[sol[pos-1]];
-            else{
-                last.direzione_out = -1;
-                last.tipologia = -1;
-            }
+                diff_diag -= el->elementi[i].difficolta;
+                if(el->elementi[i].tipologia == 2)
+                    acrobatico_av--;
+                if(el->elementi[i].tipologia == 1)
+                    acrobatico_ind--;
+                if(el->elementi[i].seq==1)
+                    acrobatico_seq--;
+                sol[i] = -1; //solo per debug
          }
     }
     return cnt;
 }
 
-void riempiDiag(struct elementi *el, int *sol, int k, diagonale_t *diagonale){
+diagonale_t newDiag(struct elementi *el, int *sol, int k){
     int i;
+    diagonale_t diagonale;
+
+    diagonale.difficolta=0;
+    diagonale.valore=0;
     
-    for(i=0; i<k; i++)
-        diagonale->elemento[i] = el->elementi[sol[i]];
-    diagonale->n = k;
-    return;
+    for(i=0; i<k; i++){
+        diagonale.elemento[i] = el->elementi[sol[i]];
+        if(i=k-1 && el->elementi[sol[i]].valore>=8)
+            diagonale.valore += el->elementi[sol[i]].valore*1.5;
+        else
+            diagonale.valore += el->elementi[sol[i]].valore; 
+    }
+    diagonale.acrobatico_av = acrobatico_av;
+    diagonale.acrobatico_ind = acrobatico_ind;
+    diagonale.acrobatico_seq = acrobatico_seq;
+    diagonale.difficolta = diff_diag;
+    diagonale.n = k;
+    return diagonale;
 }
 
-int isvalid(elemento_t el, int DD, int pos, int k, diagonale_t *diagonale){
+int isvalid(elemento_t *el, int DD, int pos, int k, int i){
     if(pos==0){ //primo elemento della diagonale
-        if(el.direzione_in==1 && el.precedenza==0 && el.difficolta<DD){
-            if(el.tipologia == 2){
-                diagonale->acrobatico_av++;
-                if(last.tipologia == 1 || last.tipologia == 2){
-                    el.seq=1;
-                    diagonale->acrobatico_seq++;
-                }
-            }
-            else if(el.tipologia == 1){
-                diagonale->acrobatico_ind++;
-                if(last.tipologia == 1 || last.tipologia == 2){
-                    el.seq=1;
-                    diagonale->acrobatico_seq++;
-                }
-            }
-            last = el;
-            diagonale->difficolta += el.difficolta;
-            diagonale->valore += el.valore;
+        if(el[i].direzione_in==1 && el[i].precedenza==0 && el[i].difficolta<DD){
+            if(el[i].tipologia == 2)
+                acrobatico_av++;
+            if(el[i].tipologia == 1)
+                acrobatico_ind++;
+            diff_diag += el[i].difficolta;
             return 1;
         }
         return 0;
     }
 
     if(pos+1==k){ //ultimo elemento
-        if((last.direzione_out == el.direzione_in) && (diagonale->difficolta+el.difficolta<=DD)) {
-            if(el.tipologia == 2){
-                diagonale->acrobatico_av++;
-                if(last.tipologia == 1 || last.tipologia == 2){
-                    el.seq=1;
-                    diagonale->acrobatico_seq++;
+        if((el[i-1].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD)) {
+            if(el[i].tipologia == 2){
+                acrobatico_av++;
+                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                    el[i].seq=1;
+                    acrobatico_seq++;
                     }
                 }
-            else if(el.tipologia == 1){
-                    diagonale->acrobatico_ind++;
-                    if(last.tipologia == 1 || last.tipologia == 2){
-                        el.seq=1;
-                        diagonale->acrobatico_seq++;
+            if(el[i].tipologia == 1){
+                acrobatico_ind++;
+                    if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                        el[i].seq=1;
+                        acrobatico_seq++;
                     }
                 }  
-            last = el;
-            diagonale->difficolta += el.difficolta;
-            diagonale->valore += el.valore;
+            diff_diag += el[i].difficolta;
             return 1;
         }
         return 0;
 
     }
 
-    if((last.direzione_out == el.direzione_in) && (diagonale->difficolta+el.difficolta<=DD) && (el.finale==0)){
-        if(el.tipologia == 2){
-                diagonale->acrobatico_av++;
-                if(last.tipologia == 1 || last.tipologia == 2){
-                    el.seq=1;
-                    diagonale->acrobatico_seq++;
+    if((el[i-1].direzione_out == el[i].direzione_in) && (diff_diag+el[i].difficolta<=DD) && (el[i].finale==0)){
+        if(el[i].tipologia == 2){
+                acrobatico_av++;
+                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                    el[i].seq=1;
+                    acrobatico_seq++;
                     }
-        else if(el.tipologia == 1){
-                    diagonale->acrobatico_ind++;
-                    if(last.tipologia == 1 || last.tipologia == 2){
-                        el.seq=1;
-                    diagonale->acrobatico_seq++;
+        if(el[i].tipologia == 1){
+                acrobatico_ind++;
+                if(el[i-1].tipologia == 1 || el[i-1].tipologia == 2){
+                    el[i].seq=1;
+                    acrobatico_seq++;
                 }  
-            last = el;
-            diagonale->difficolta += el.difficolta;
-            diagonale->valore += el.valore;
+            diff_diag += el[i].difficolta;
             return 1;
             }
         return 0;
@@ -236,19 +224,12 @@ int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD)
     for(k=0; k<MAXELEM; k++)
         sol[k]=-1;
 
-    sample.acrobatico_av=0;
-    sample.acrobatico_ind=0;
-    sample.acrobatico_seq=0;
-    sample.difficolta=0;
-    sample.valore=0;
-
-    for(k=0; k<size; k++)
-        diagonali->diagonali[k] = sample;
-
-    for(k=1; k<6; k++){
+    for(k=1; k<MAXELEM+1; k++){
         diagonali->n += disp_rip_diag(0,p_el,sol,diagonali->n,diagonali, DD, k);
-        last.direzione_out = -1;
-        last.tipologia = -1;
+        diff_diag = 0;
+        acrobatico_av=0;
+        acrobatico_ind=0;
+        acrobatico_seq=0;
     }
     diagonali->diagonali = realloc(diagonali->diagonali,diagonali->n*sizeof(diagonale_t));
     free(sol);
@@ -256,55 +237,56 @@ int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD)
 }
 
 
-float calcolaProgramma(programma_t *programma, struct diagonali diagonali, int DP){
+programma_t calcolaProgramma( struct diagonali diagonali, int DP){
     int k, *sol;
+    programma_t programma;
+    programma.difficolta=0;
+    programma.valore=0;
 
     sol = (int *) malloc(MAXDIAG*sizeof(int));
 
     for(k=0; k<MAXDIAG; k++)
         sol[k]=-1;
 
-    programma->valore = 0;
+    programma.valore = 0;
+    programma = disp_rip_progr(0,diagonali,sol,programma.valore,DP,MAXDIAG,programma);
 
-    for(k=1; k<4; k++){
-        disp_rip_progr(0,diagonali,sol,programma,DP,k);
-    }
     free(sol);
-    return programma->n;
+    return programma;
 }
 
 
-void disp_rip_progr(int pos, struct diagonali diag, int *sol, programma_t *programma, int DP, int k){
+programma_t disp_rip_progr(int pos, struct diagonali diag, int *sol, int best_progr_val, int DP, int k, programma_t best){
     int i, j;
     float val;
     if(pos==k){
         if(acrobatico_av>0 && acrobatico_ind>0 && acrobatico_seq>0){
            for(j=0; j<k; j++)
             val += diag.diagonali[sol[j]].valore;
-            if(val>programma->valore){
-                programma->valore = val;
-                programma->n = k;
-                for(j=0; j>k; j++)
-                    programma->diagonali[j] = diag.diagonali[sol[j]];
+            if(val>best_progr_val){
+                best_progr_val = val;
+                for(i=0; i<k; i++){
+                    best.diagonali[i] = diag.diagonali[sol[j]];
+                    best.valore = val;
+                    best.difficolta = diff_prog;
+                }
             }           
         }
-        return;
+        return best;
     }
     for(i=0; i<diag.n; i++){
-        if(programma->difficolta + diag.diagonali[sol[pos]].difficolta <= DP){
+        if(diff_prog + diag.diagonali[sol[pos]].difficolta <= DP){
             sol[pos]=i;
-            disp_rip_progr(pos+1, diag, sol, programma, DP, k);
-            if(last_d.acrobatico_av>0)
-                acrobatico_av -= last_d.acrobatico_av;
-            if(last_d.acrobatico_ind>0)
-                acrobatico_ind -= last_d.acrobatico_ind;
-            if(last_d.acrobatico_seq>0)
-                acrobatico_seq -= last_d.acrobatico_seq;
-            if(pos>0)
-                last_d = diag.diagonali[sol[pos-1]];
+            disp_rip_progr(pos+1, diag, sol, best_progr_val, DP, k, best);
+            if(diag.diagonali[i].acrobatico_av>0)
+                acrobatico_av--;
+            if(diag.diagonali[i].acrobatico_ind>0)
+                acrobatico_ind--;
+            if(diag.diagonali[i].acrobatico_seq>0)
+                acrobatico_seq--;
          }
     }
-    return;
+    return best;
 }
 
 
