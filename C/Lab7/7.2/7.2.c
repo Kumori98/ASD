@@ -48,7 +48,7 @@ int isvalid(elemento_t *el, int DD, int pos, int k,  int i, int last);
 diagonale_t newDiag(struct elementi *el, int *sol, int k);
 int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD);
 programma_t calcolaProgramma(struct diagonali diagonali, int DP);
-programma_t disp_rip_progr(int pos, struct diagonali diag, int *sol, int best_progr_val, int DP, int k, programma_t best);
+programma_t disp_rip_progr(int pos, struct diagonali *diag, int *sol, int best_progr_val, int DP, int k, programma_t best);
 
 
 int main(){
@@ -72,7 +72,7 @@ int main(){
     diagonali.n = calcoloDiagonali(p_el,&diagonali,DD);
 
     programma = calcolaProgramma(diagonali, DP);
-    printf("-- Test con DD= %d e DP=%D --\n Totale: %d", DD, DP, programma.valore);
+    printf("-- Test con DD= %d e DP=%D --\n Totale: %f", DD, DP, programma.valore);
     for(i=0; i<MAXDIAG; i++){
         printf("Diagonale #%d > %f\n", i, programma.diagonali[i].valore);
         for(j=0; j<programma.diagonali[i].n; j++)
@@ -123,16 +123,16 @@ int disp_rip_diag(int pos, struct elementi *el, int *sol, int cnt, struct diagon
          if(isvalid(el->elementi, DD, pos, k, i, sol[pos-1])){
             sol[pos]=i;
             cnt = disp_rip_diag(pos+1, el, sol, cnt, diagonali, DD, k);
-                diff_diag -= el->elementi[i].difficolta;
-                if(el->elementi[i].tipologia==2)
-                    acrobatico_av--;
-                if(el->elementi[i].tipologia==1)
-                    acrobatico_ind--;
-                if(el->elementi[i].seq==1){
-                    acrobatico_seq--;
-                    el->elementi[i].seq=0;
-                }
-         }
+            diff_diag -= el->elementi[i].difficolta;
+            if(el->elementi[i].tipologia==2)
+                acrobatico_av--;
+            if(el->elementi[i].tipologia==1)
+                acrobatico_ind--;
+            if(el->elementi[i].seq==1){
+                acrobatico_seq--;
+                el->elementi[i].seq=0;
+            }
+        }
     }
     return cnt;
 }
@@ -146,7 +146,7 @@ diagonale_t newDiag(struct elementi *el, int *sol, int k){
     
     for(i=0; i<k; i++){
         diagonale.elemento[i] = el->elementi[sol[i]];
-        if(i=k-1 && el->elementi[sol[i]].valore>=8)
+        if((i==k-1) && (el->elementi[sol[i]].valore>=8))
             diagonale.valore += el->elementi[sol[i]].valore*1.5;
         else
             diagonale.valore += el->elementi[sol[i]].valore; 
@@ -221,9 +221,6 @@ int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD)
     int *sol, k;
 
     sol = (int *) malloc(MAXELEM*sizeof(int));
-
-    for(k=0; k<MAXELEM; k++)
-        sol[k]=-1;
     
     diagonali->n = 0;
 
@@ -234,6 +231,7 @@ int calcoloDiagonali(struct elementi *p_el, struct diagonali *diagonali, int DD)
         acrobatico_ind=0;
         acrobatico_seq=0;
     }
+    
     diagonali->diagonali = realloc(diagonali->diagonali,diagonali->n*sizeof(diagonale_t));
     free(sol);
     return diagonali->n;
@@ -244,48 +242,51 @@ programma_t calcolaProgramma( struct diagonali diagonali, int DP){
     int k, *sol;
     programma_t programma;
     programma.difficolta=0;
-    programma.valore=0;
+    programma.valore=0.0;
 
     sol = (int *) malloc(MAXDIAG*sizeof(int));
 
-    for(k=0; k<MAXDIAG; k++)
-        sol[k]=-1;
-
-    programma.valore = 0;
-    programma = disp_rip_progr(0,diagonali,sol,programma.valore,DP,MAXDIAG,programma);
+    programma = disp_rip_progr(0,&diagonali,sol,programma.valore,DP,MAXDIAG,programma);
 
     free(sol);
     return programma;
 }
 
 
-programma_t disp_rip_progr(int pos, struct diagonali diag, int *sol, int best_progr_val, int DP, int k, programma_t best){
-    int i, j;
+programma_t disp_rip_progr(int pos, struct diagonali *diag, int *sol, int best_progr_val, int DP, int k, programma_t best){
+    int i;
     float val;
-    if(pos==k){
+    if(pos>=k){
         if(acrobatico_av>0 && acrobatico_ind>0 && acrobatico_seq>0){
-           for(j=0; j<k; j++)
-            val += diag.diagonali[sol[j]].valore;
+           for(i=0; i<k; i++)
+            val += diag->diagonali[sol[i]].valore;
             if(val>best_progr_val){
                 best_progr_val = val;
                 for(i=0; i<k; i++){
-                    best.diagonali[i] = diag.diagonali[sol[j]];
-                    best.valore = val;
-                    best.difficolta = diff_prog;
+                    best.diagonali[i] = diag->diagonali[sol[i]];
                 }
+                best.valore = val;
+                best.difficolta = diff_prog;
             }           
         }
         return best;
     }
-    for(i=0; i<diag.n; i++){
-        if(diff_prog + diag.diagonali[sol[pos]].difficolta <= DP){
+    for(i=0; i<diag->n; i++){
+        if(diff_prog + diag->diagonali[i].difficolta <= DP){
             sol[pos]=i;
-            disp_rip_progr(pos+1, diag, sol, best_progr_val, DP, k, best);
-            if(diag.diagonali[i].acrobatico_av>0)
+            diff_prog += diag->diagonali[sol[pos]].difficolta;
+            if(diag->diagonali[i].acrobatico_av>0)
+                acrobatico_av++;
+             if(diag->diagonali[i].acrobatico_ind>0)
+                acrobatico_ind++;
+            if(diag->diagonali[i].acrobatico_seq>0)
+                acrobatico_seq++;
+            best = disp_rip_progr(pos+1, diag, sol, best_progr_val, DP, k, best);
+            if(diag->diagonali[i].acrobatico_av>0 )
                 acrobatico_av--;
-            if(diag.diagonali[i].acrobatico_ind>0)
+            if(diag->diagonali[i].acrobatico_ind>0)
                 acrobatico_ind--;
-            if(diag.diagonali[i].acrobatico_seq>0)
+            if(diag->diagonali[i].acrobatico_seq>0)
                 acrobatico_seq--;
          }
     }
