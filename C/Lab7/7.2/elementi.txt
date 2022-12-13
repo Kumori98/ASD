@@ -1,6 +1,6 @@
 19
 ruota 0 1 0 0 0 0.0 1
-rondata 0 1 0 0 0 0.2 1   ggfggggg676767676767677676665544433334
+rondata 0 1 0 0 0 0.2 1  
 ribaltata_a_2 0 1 1 0 0 0.25 2
 back_handspring 0 0 0 0 0 0.4 2
 front_tuck 2 1 1 0 0 1.75 3
