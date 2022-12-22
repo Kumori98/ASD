@@ -54,7 +54,7 @@ void disp_rip_progr(int pos, struct diagonali *diag, int *sol, int DP, int k, pr
 
 int main(){
     struct elementi *p_el;
-    int DD=10, DP=35;
+    int DD, DP;
     FILE *fp;
     struct diagonali diagonali;
     int i, j;
@@ -66,8 +66,8 @@ int main(){
     if(!(caricaElementi(fp, p_el)))
         return -1;
 
-    //printf("Inserisci la difficoltà massima per le diagonali e per il programma: ");
-    //scanf("%d %d", &DD, &DP);
+    printf("Inserisci la difficoltà massima per le diagonali e per il programma: ");
+    scanf("%d %d", &DD, &DP);
 
     diagonali.diagonali = (diagonale_t*) malloc((size)*sizeof(diagonale_t)); //eventualmente rialloco
     diagonali.n = calcoloDiagonali(p_el,&diagonali,DD);
