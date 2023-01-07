@@ -113,7 +113,7 @@ static void treePrint(link h, FILE *fp) {
 void BSTquotazioniStore(quotazioni_t bst, FILE *fp) {
   if (BSTquotazioniEmpty(bst))
     return;
-  treePrint(bst->root, fp);
+  treePrint(bst->radice, fp);
 }
 
 void static treeMinmaxRange(link r, data_t d1, data_t d2, float *f1, float *f2) {

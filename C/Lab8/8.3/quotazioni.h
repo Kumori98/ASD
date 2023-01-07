@@ -4,7 +4,7 @@
 #include "data.h"
 #include "quotazione.h"
 
-#define S 2.0
+#define S 3
 
 typedef struct quotazioni *quotazioni_t;
 
