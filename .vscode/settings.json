@@ -4,6 +4,7 @@
         "inv.h": "c",
         "quotazione.h": "c",
         "quotazioni.h": "c",
-        "titolo.h": "c"
+        "titolo.h": "c",
+        "stdio.h": "c"
     }
 }
