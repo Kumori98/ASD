@@ -1,16 +1,16 @@
 #define MAXLEN 31
 
-typedef struct {
+typedef struct Item {
     char nome[MAXLEN];
     int index;
 }Item_t;
 
-typedef struct {
+typedef struct ST{
     Item_t *items;
     int maxDim, used;
 }ST_t;
 
 ST_t STinit(int maxN);
-int  STsearch(ST_t ht, char *nome);
-void STfree(ST_t ht);
-void STinsert(ST_t ht, char *nome, int index);
+int  STsearch(ST_t st, char *nome);
+void STfree(ST_t st);
+void STinsert(ST_t st, char *nome, int index);

@@ -13,10 +13,19 @@ struct G{
 
 Graph GRAPHinit(int V){
     Graph g = malloc (sizeof(*g));
+    int i, j;
     if (g == NULL)
         return NULL;
     g->st = STinit(V);
     g->nodi = malloc (V*sizeof(nodo));
+
+    g->madj = malloc (V*sizeof(int *));
+    for (i=0; i < V; i++)
+      g->madj[i] = malloc(V * sizeof(int));
+    for (i=0; i < V; i++)
+      for (j=0; j < V; j++)
+        g->madj[i][j] = -1; //inizializzo tutto a -1
+
     return g;
 }
 
@@ -91,4 +100,53 @@ void GRAPHstore(Graph g, FILE *fp) {
 
   for (i = 0; i < g->E; i++)
     fprintf(fp, "%s  %s %d\n", &(g->nodi[a[i].v].nome), &(g->nodi[a[i].w]).nome, a[i].peso);
+}
+
+int GRAPHnumV(Graph g) {
+  return g->V;
+}
+
+int GRAPHnumE(Graph g) {
+  return g->E;
+}
+
+int GRAPHdfs(Graph g){
+  int *pre, *post, i, *time=0;
+    if (g == NULL)
+      return -1;
+    if (g->madj == NULL)
+      return -1;
+
+  pre = malloc(g->V*sizeof(int));
+  post = malloc(g->V*sizeof(int));    
+  for(i=0;i<g->V;i++){
+    pre[i] = -1;
+    post[i] = -1;
+  }
+
+  for(i=0;i<g->V;i++){
+    if (pre[i] == -1) //vertice non ancora esplorato
+      if(dfsR(g, time, pre, post, i))
+        	return 1; //ho trovato un ciclo
+  }
+
+  free(pre);
+  free(post);
+  return 0; //ciclo non trovato
+}
+
+int dfsR(Graph g, int *time, int *pre, int *post, int start){
+  int i, result = 0;
+  pre[start] = (*time)++;
+  for (i=0; i<g->V && result==0;i++){
+    if (g->madj[start][i] != -1){
+      if(pre[i] == -1) //vertice non ancora scoperto
+        result = dfsR(g, time, pre, post, i);
+      else  //se ho un arco che punta ad un vertice che è già stato scoperto
+        if(post[i] == -1) //ma non ancora completato
+          return 1; //ho trovato un arco back, cioè un ciclo
+    }
+  }
+  post[start] = (*time)++;
+  return result;
 }

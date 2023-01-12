@@ -18,6 +18,9 @@ Graph GRAPHload(FILE *fp);
 void  GRAPHfree(Graph g);
 void  GRAPHedges(Graph g, arco_t *a);
 void  GRAPHstore(Graph g, FILE *fp);
+int   GRAPHnumV(Graph g);
+int   GRAPHnumE(Graph g);
+int GRAPHdfs(Graph G);
 
 
 
