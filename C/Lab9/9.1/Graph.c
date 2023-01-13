@@ -170,3 +170,41 @@ void  GRAPHinsertE(Graph g, arco_t e) {
   g->madj[v][w] = wt;
   g->E++;
 }
+
+void TSdfsR(Graph g, int v, int *ts, int *pre, int *time) {
+  int i;
+  pre[v] = 0;
+  for (i=0; i<g->V; i++)
+    if (g->madj[i][v]  != -1)
+      if (pre[v] == -1)
+        TSdfsR(g, i, ts, pre, time);
+  ts[(*time)++] = v;
+}
+
+
+void DAGts(Graph g){
+  int v, time = 0, *pre, *ts;
+  pre = malloc(g->V*sizeof(int));
+  ts = malloc(g->V*sizeof(int));
+  if ((pre == NULL) || (ts == NULL))
+    return;
+  for (v=0; v < g->V; v++) {
+    pre[v] = -1;
+    ts[v] = -1;
+  }
+
+  for (v=0; v <g->V; v++)
+    if (pre[v]== -1)
+      TSdfsR(g, v, ts, pre, &time);
+  for(v=0; v<g->V; v++)
+    printf("%s ", STsearchByIndex(g->st, ts[v]));
+  free(ts);
+  free(pre);
+}
+
+
+void DAGmaxDis(Graph g){
+
+}
+
+

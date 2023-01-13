@@ -14,3 +14,4 @@ ST_t STinit(int maxN);
 int  STsearch(ST_t st, char *nome);
 void STfree(ST_t st);
 void STinsert(ST_t st, char *nome, int index);
+char *STsearchByIndex(ST_t st, int index);

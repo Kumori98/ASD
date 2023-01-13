@@ -40,3 +40,7 @@ void STinsert(ST_t st, char *nome, int index){
     strcpy(st.items[st.used].nome,nome);
     st.items[st.used].index = st.used;
 }
+
+char *STsearchByIndex(ST_t st, int index){
+    return st.items[index].nome;
+}
