@@ -21,6 +21,8 @@ void  GRAPHstore(Graph g, FILE *fp);
 int   GRAPHnumV(Graph g);
 int   GRAPHnumE(Graph g);
 int GRAPHdfs(Graph G);
-
+void GRAPHremoveE(Graph g, arco_t e);
+int GRAPHwt(arco_t *vE, int *sol, int k);
+void GRAPHremoveE(Graph g, arco_t e);
 
 

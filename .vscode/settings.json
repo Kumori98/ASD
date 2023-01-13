@@ -5,6 +5,7 @@
         "quotazione.h": "c",
         "quotazioni.h": "c",
         "titolo.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "string.h": "c"
     }
 }

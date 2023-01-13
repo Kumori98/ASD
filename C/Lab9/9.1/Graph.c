@@ -110,6 +110,22 @@ int GRAPHnumE(Graph g) {
   return g->E;
 }
 
+int dfsR(Graph g, int *time, int *pre, int *post, int start){
+  int i, result = 0;
+  pre[start] = (*time)++;
+  for (i=0; i<g->V && result==0;i++){
+    if (g->madj[start][i] != -1){
+      if(pre[i] == -1) //vertice non ancora scoperto
+        result = dfsR(g, time, pre, post, i);
+      else  //se ho un arco che punta ad un vertice che è già stato scoperto
+        if(post[i] == -1) //ma non ancora completato
+          return 1; //ho trovato un arco back, cioè un ciclo
+    }
+  }
+  post[start] = (*time)++;
+  return result;
+}
+
 int GRAPHdfs(Graph g){
   int *pre, *post, i, *time=0;
     if (g == NULL)
@@ -135,18 +151,22 @@ int GRAPHdfs(Graph g){
   return 0; //ciclo non trovato
 }
 
-int dfsR(Graph g, int *time, int *pre, int *post, int start){
-  int i, result = 0;
-  pre[start] = (*time)++;
-  for (i=0; i<g->V && result==0;i++){
-    if (g->madj[start][i] != -1){
-      if(pre[i] == -1) //vertice non ancora scoperto
-        result = dfsR(g, time, pre, post, i);
-      else  //se ho un arco che punta ad un vertice che è già stato scoperto
-        if(post[i] == -1) //ma non ancora completato
-          return 1; //ho trovato un arco back, cioè un ciclo
-    }
-  }
-  post[start] = (*time)++;
-  return result;
+int GRAPHwt(arco_t *vE, int *sol, int k){
+  int i, tot=0;
+  for (i=0; i<k; i++)
+    tot +=vE[sol[i]].peso;
+  return tot;
+}
+
+void GRAPHremoveE(Graph g, arco_t e) {
+  int v = e.v, w = e.w;
+  if (g->madj[v][w] != -1)
+    g->E--;
+  g->madj[v][w] = -1;
+}
+
+void  GRAPHinsertE(Graph g, arco_t e) {
+  int v = e.v, w = e.w, wt = e.peso;
+  g->madj[v][w] = wt;
+  g->E++;
 }

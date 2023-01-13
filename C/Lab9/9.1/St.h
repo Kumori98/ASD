@@ -1,6 +1,6 @@
 #define MAXLEN 31
 
-typedef struct Item {
+typedef struct Item{
     char nome[MAXLEN];
     int index;
 }Item_t;

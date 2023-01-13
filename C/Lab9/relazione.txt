@@ -1,0 +1,14 @@
+Esercizio 9.1 Giovanni Pizzenti s249066
+Per la tabella di simboli ho deciso di utilizzare un quasi ADT con:
+-	Il tipo item è una  struct con una stringa (nome) e un intero (indice);
+-	Il tipo symbol table è  una struct con un vettore di Item, la dimensione allocata e la dimensione effettivamente utilizzata;
+Per il grafo ho implementato un ADT di prima classe con :
+-	Il tipo arco con il nodo di partenza, di arrivo ed il peso;
+-	Il tipo grafo con la matrice delle adiacenze, la tabella di simboli, un vettore di stringhe con tutti i nomi dei vertici, il numero di archi e di vertici;
+
+Rappresentazione grafica struttura dati
+
+Il primo punto richiede di trovare tutti gli insiemi di archi a cardinalità minima la cui rimozione rendesse il grafo di partenza un DAG, ho deciso quindi di fare una DFS preliminare così da non iterare su quei grafi che sono già dei DAG, mi basta trovare un arco back per poter dire che ha un ciclo e non è quindi un DAG.
+Nel caso in cui il grafo sia ciclico utilizzo il powerset con il modello delle combinazioni semplici iterando su k partendo da 1, cioè rimuovendo un solo nodo, e lo incremento fin quando non trovo un valore tale per cui ottengo un set di nodi,che se rimossi mi danno un DAG, e salvo quello a peso massimo.
+
+
