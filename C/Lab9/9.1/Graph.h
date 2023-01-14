@@ -23,9 +23,9 @@ int   GRAPHnumE(Graph g);
 int GRAPHdfs(Graph G);
 void GRAPHremoveE(Graph g, arco_t e);
 int GRAPHwt(arco_t *vE, int *sol, int k);
-void GRAPHremoveE(Graph g, arco_t e);
+void GRAPHinsertE(Graph g, arco_t e);
 void TSdfsR(Graph g, int V, int *ts, int *pre, int *time);
-void DAGmaxDis(Graph g);
-void DAGrts(Graph g);
+int *DAGrts(Graph g);
+void DAGmaxDis(Graph g, int *ts);
 
 

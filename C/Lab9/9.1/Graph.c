@@ -11,6 +11,14 @@ struct G{
     int V, E;
 };
 
+arco_t EDGEcreate(int v, int w, int wt) {
+  arco_t e;
+  e.v = v;
+  e.w = w;
+  e.peso = wt;
+  return e;
+}
+
 Graph GRAPHinit(int V){
     Graph g = malloc (sizeof(*g));
     int i, j;
@@ -59,13 +67,6 @@ void GRAPHfree(Graph g){
     for (i=0; i<g->V; i++)
         free(g->madj[i]);
     free(g->madj);
-}
-arco_t EDGEcreate(int v, int w, int wt) {
-  arco_t e;
-  e.v = v;
-  e.w = w;
-  e.peso = wt;
-  return e;
 }
 
 void  GRAPHedges(Graph g, arco_t *a) {
@@ -151,18 +152,18 @@ int GRAPHdfs(Graph g){
   return 0; //ciclo non trovato
 }
 
-int GRAPHwt(arco_t *vE, int *sol, int k){
-  int i, tot=0;
-  for (i=0; i<k; i++)
-    tot +=vE[sol[i]].peso;
-  return tot;
-}
-
 void GRAPHremoveE(Graph g, arco_t e) {
   int v = e.v, w = e.w;
   if (g->madj[v][w] != -1)
     g->E--;
   g->madj[v][w] = -1;
+}
+
+int GRAPHwt(arco_t *vE, int *sol, int k){
+  int i, tot=0;
+  for (i=0; i<k; i++)
+    tot +=vE[sol[i]].peso;
+  return tot;
 }
 
 void  GRAPHinsertE(Graph g, arco_t e) {
@@ -182,7 +183,7 @@ void TSdfsR(Graph g, int v, int *ts, int *pre, int *time) {
 }
 
 
-void DAGts(Graph g){
+int *DAGrts(Graph g){
   int v, time = 0, *pre, *ts;
   pre = malloc(g->V*sizeof(int));
   ts = malloc(g->V*sizeof(int));
@@ -198,13 +199,40 @@ void DAGts(Graph g){
       TSdfsR(g, v, ts, pre, &time);
   for(v=0; v<g->V; v++)
     printf("%s ", STsearchByIndex(g->st, ts[v]));
-  free(ts);
   free(pre);
+  return ts;
 }
 
 
-void DAGmaxDis(Graph g){
+void DAGmaxDis(Graph g, int *ts){
+  int i, v, w, j, k;
+  int *dist;
 
+  dist = calloc(g->V, sizeof(int));
+
+  for (i=0; i<g->V;i++){
+    v = ts[i]; 
+    printf("Nodo: %s\n", &(g->nodi[v]).nome);
+    for (j=0; j<g->V; j++)
+      dist[j] = -1; 
+    dist[v] = 0; //inizializzo tutto a 0
+    for (j=i; j<g->V; j++) {
+      w = ts[j]; //nodo intermedio
+      if(dist[w]==-1) continue;
+      for (k=0; k<g->V; k++) {
+          if (g->madj[w][k]!=-1 && (dist[k]==-1 || (dist[w]+g->madj[w][k] > dist[k])))
+            dist[k] = dist[w]+g->madj[w][k]; //aggiorno la distanza
+      }
+    }
+    
+    for (k=0; k<g->V; k++) {
+      if (k!=v)
+        printf(" -> %s (%d)\n", &(g->nodi[k]).nome, dist[k]);
+    }
+  }
+
+  free(dist);
+  return;
 }
 
 

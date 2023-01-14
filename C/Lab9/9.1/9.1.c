@@ -10,7 +10,7 @@ int comb_sempl(int pos, Graph g, arco_t *vE, int E, int *sol, int start, int k, 
 int main(int argc, char **argv){
     Graph g = NULL;
     FILE *fp;
-    int V;
+    int V, *ts;
 
     if(argc != 2){
         printf("FILE MANCANTE\n");
@@ -39,12 +39,15 @@ int main(int argc, char **argv){
     }
 
     V = GRAPHgetNumV(g);
+    ts = malloc(V*sizeof(int));
 
-    DAGts(g);
+    ts = DAGrts(g);
 
     printf("Le distanze massime sono: \n");
 
-    DAGmaxDis(g);char *STsearchByIndex(ST_t st, int index);
+    DAGmaxDis(g, ts);
+    
+    char *STsearchByIndex(ST_t st, int index);
 
     GRAPHfree(g);
 }

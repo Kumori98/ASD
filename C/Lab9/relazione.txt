@@ -11,4 +11,8 @@ Rappresentazione grafica struttura dati
 Il primo punto richiede di trovare tutti gli insiemi di archi a cardinalità minima la cui rimozione rendesse il grafo di partenza un DAG, ho deciso quindi di fare una DFS preliminare così da non iterare su quei grafi che sono già dei DAG, mi basta trovare un arco back per poter dire che ha un ciclo e non è quindi un DAG.
 Nel caso in cui il grafo sia ciclico utilizzo il powerset con il modello delle combinazioni semplici iterando su k partendo da 1, cioè rimuovendo un solo nodo, e lo incremento fin quando non trovo un valore tale per cui ottengo un set di nodi,che se rimossi mi danno un DAG, e salvo quello a peso massimo.
 
+L'ultimo punto chiede di trovare i cammini massimi per il DAG trovato sopra, per fare questo inizio ordinando topologicamente il DAG e poi, per ogni vertice, applico la relaxation inversa.
+Per  applicare l'ordinemento topologico uso la funzione DAGrts che a sua volta chiama la TSdsfR (entrambe presenti nelle slide capitolo 12);
+Per trovare i cammini massimi ho creato la funzione 
+
 
